@@ -1,0 +1,30 @@
+name: Kibana 292076 missing-index First Red
+
+on:
+  push:
+    branches:
+      - test/292076-storage-explorer-missing-indices-first-red
+    paths:
+      - x-pack/solutions/observability/plugins/apm/server/routes/storage_explorer/indices_stats_helpers.test.ts
+      - .github/workflows/292076-first-red.yml
+
+permissions:
+  contents: read
+
+jobs:
+  first-red:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@12.4.2 --activate
+      - name: Bootstrap Kibana dependencies
+        run: CI=true pnpm kbn bootstrap --no-prebuilt
+      - name: Run frozen missing-index tests
+        run: node scripts/jest --runInBand --runTestsByPath x-pack/solutions/observability/plugins/apm/server/routes/storage_explorer/indices_stats_helpers.test.ts
