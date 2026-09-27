@@ -72,4 +72,19 @@ describe('storage explorer with no APM indices', () => {
 
     await expect(getIndicesInfo({ context, apmEventClient })).resolves.toEqual({});
   });
+  it('does not hide unrelated lifecycle errors', async () => {
+    const securityError = new Error('security_exception: missing view_index_metadata privilege');
+    const explainLifecycle = jest.fn().mockRejectedValue(securityError);
+    const context = contextFor({ ilm: { explainLifecycle } });
+
+    await expect(getIndicesLifecycleStatus({ context, apmEventClient })).rejects.toBe(securityError);
+  });
+
+  it('keeps lifecycle information for existing APM indices', async () => {
+    const phases = { 'traces-apm-000001': { phase: 'hot' } };
+    const explainLifecycle = jest.fn().mockResolvedValue({ indices: phases });
+    const context = contextFor({ ilm: { explainLifecycle } });
+
+    await expect(getIndicesLifecycleStatus({ context, apmEventClient })).resolves.toEqual(phases);
+  });
 });
