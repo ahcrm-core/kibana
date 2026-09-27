@@ -6,6 +6,7 @@ on:
       - test/292076-storage-explorer-missing-indices-first-red
     paths:
       - x-pack/solutions/observability/plugins/apm/server/routes/storage_explorer/indices_stats_helpers.test.ts
+      - x-pack/solutions/observability/plugins/apm/server/routes/storage_explorer/indices_stats_helpers.ts
       - .github/workflows/292076-first-red.yml
 
 permissions:
