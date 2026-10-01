@@ -1,0 +1,50 @@
+name: Kibana 292645 overflow-count First Red
+
+on:
+  push:
+    branches:
+      - test/292645-overflow-count-first-red
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  overflow-count-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Verify overflow count is rendered end to end
+        shell: python
+        run: |
+          from pathlib import Path
+
+          service_link = Path("x-pack/solutions/observability/plugins/apm/public/components/shared/links/apm/service_link/index.tsx").read_text()
+          message = Path("x-pack/solutions/observability/plugins/apm/public/components/shared/links/apm/max_groups_message.tsx").read_text()
+
+          failures = []
+
+          if "serviceOverflowCount" not in service_link:
+              failures.append("ServiceLink has no serviceOverflowCount prop")
+
+          if "export function ServiceLink({ agentName, query, serviceName, serviceOverflowCount }" not in service_link:
+              failures.append("ServiceLink does not consume serviceOverflowCount")
+
+          if "<MaxGroupsMessage serviceOverflowCount={serviceOverflowCount} />" not in service_link:
+              failures.append("ServiceLink does not forward serviceOverflowCount to MaxGroupsMessage")
+
+          if "serviceOverflowCount" not in message:
+              failures.append("MaxGroupsMessage does not accept/use serviceOverflowCount")
+
+          if "additional service" not in message:
+              failures.append("MaxGroupsMessage has no count-aware overflow copy")
+
+          if failures:
+              print("FIRST_RED: expected current implementation to fail the overflow-count contract")
+              for failure in failures:
+                  print(f"- {failure}")
+              raise SystemExit(1)
+
+          print("CONTRACT_PASS")
