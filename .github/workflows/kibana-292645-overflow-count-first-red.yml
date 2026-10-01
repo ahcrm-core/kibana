@@ -20,29 +20,34 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
 
           service_link = Path("x-pack/solutions/observability/plugins/apm/public/components/shared/links/apm/service_link/index.tsx").read_text()
           message = Path("x-pack/solutions/observability/plugins/apm/public/components/shared/links/apm/max_groups_message.tsx").read_text()
 
           failures = []
 
-          if "serviceOverflowCount" not in service_link:
+          if "serviceOverflowCount?: number;" not in service_link:
               failures.append("ServiceLink has no serviceOverflowCount prop")
 
-          if "export function ServiceLink({ agentName, query, serviceName, serviceOverflowCount }" not in service_link:
+          signature = re.search(r"export function ServiceLink\s*\(\s*\{(?P<props>.*?)\}\s*:\s*ServiceLinkProps\s*\)", service_link, re.S)
+          if not signature or "serviceOverflowCount" not in signature.group("props"):
               failures.append("ServiceLink does not consume serviceOverflowCount")
 
           if "<MaxGroupsMessage serviceOverflowCount={serviceOverflowCount} />" not in service_link:
               failures.append("ServiceLink does not forward serviceOverflowCount to MaxGroupsMessage")
 
-          if "serviceOverflowCount" not in message:
-              failures.append("MaxGroupsMessage does not accept/use serviceOverflowCount")
+          if not re.search(r"export function MaxGroupsMessage\s*\(\s*\{\s*serviceOverflowCount\s*,?\s*\}", message, re.S):
+              failures.append("MaxGroupsMessage does not accept serviceOverflowCount")
 
-          if "additional service" not in message:
-              failures.append("MaxGroupsMessage has no count-aware overflow copy")
+          if "serviceOverflowCount && serviceOverflowCount > 0" not in message:
+              failures.append("MaxGroupsMessage does not guard count-aware copy to positive overflow")
+
+          if "{serviceOverflowCount, plural," not in message or "additional service" not in message:
+              failures.append("MaxGroupsMessage has no pluralized count-aware overflow copy")
 
           if failures:
-              print("FIRST_RED: expected current implementation to fail the overflow-count contract")
+              print("CONTRACT_FAIL")
               for failure in failures:
                   print(f"- {failure}")
               raise SystemExit(1)
