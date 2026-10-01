@@ -13,11 +13,7 @@ import { useApmPluginContext } from '../../../../context/apm_plugin/use_apm_plug
 
 export const OTHER_SERVICE_NAME = '_other';
 
-export function MaxGroupsMessage({
-  serviceOverflowCount,
-}: {
-  serviceOverflowCount?: number;
-}) {
+export function MaxGroupsMessage({ serviceOverflowCount }: { serviceOverflowCount?: number }) {
   const { docLinks } = useApmPluginContext().core;
 
   const apmServerDocs = (
