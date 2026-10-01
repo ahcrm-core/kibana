@@ -31,5 +31,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Bootstrap Kibana workspaces
+        run: pnpm kbn bootstrap
+
       - name: Run focused MaxGroupsMessage tests
         run: node scripts/jest x-pack/solutions/observability/plugins/apm/public/components/shared/links/apm/max_groups_message.test.tsx --runInBand
