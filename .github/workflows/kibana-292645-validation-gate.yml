@@ -1,0 +1,44 @@
+name: Kibana 292645 validation gate
+
+on:
+  push:
+    branches:
+      - test/292645-overflow-count-first-red
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24.21.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Activate pnpm
+        run: corepack prepare pnpm@12.4.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bootstrap Kibana workspaces
+        run: pnpm kbn bootstrap
+
+      - name: Run focused regression
+        run: node scripts/jest x-pack/solutions/observability/plugins/apm/public/components/shared/links/apm/max_groups_message.test.tsx --runInBand
+
+      - name: Run APM TypeScript check
+        run: node scripts/type_check.js --project x-pack/solutions/observability/plugins/apm/tsconfig.json
+
+      - name: Run APM ESLint
+        run: node scripts/eslint.js x-pack/solutions/observability/plugins/apm
