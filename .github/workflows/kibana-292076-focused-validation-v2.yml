@@ -1,0 +1,28 @@
+name: Kibana 292076 focused validation v2
+
+on:
+  push:
+    branches:
+      - test/292076-focused-validation-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  focused-jest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact validation candidate
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run focused Storage Explorer helper test
+        run: node scripts/jest x-pack/solutions/observability/plugins/apm/server/routes/storage_explorer/indices_stats_helpers.test.ts --runInBand
