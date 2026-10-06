@@ -12,7 +12,7 @@ permissions:
 jobs:
   focused-jest:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout exact validation candidate
         uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
           node-version: 24.21.0
       - name: Enable Corepack
         run: corepack enable
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Bootstrap Kibana test environment
+        run: node scripts/kbn bootstrap
       - name: Run focused Storage Explorer helper test
         run: node scripts/jest x-pack/solutions/observability/plugins/apm/server/routes/storage_explorer/indices_stats_helpers.test.ts --runInBand
